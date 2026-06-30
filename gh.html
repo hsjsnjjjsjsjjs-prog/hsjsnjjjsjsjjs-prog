@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>🐉 التنين ضد النمر 🐯</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body,
+        html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0d0221;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-app {
+            width: 100%;
+            max-width: 460px;
+            height: 100%;
+            max-height: 820px;
+            background: linear-gradient(160deg, #1a0a2e, #0d0620);
+            display: flex;
+            flex-direction: column;
+            padding: 14px 16px 16px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 28px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+        }
+
+        /* ===== HEADER ===== */
+        .app-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2px 10px;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.08);
+            flex-shrink: 0;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #d4a5ff;
+            font-size: 16px;
+            font-weight: 700;
+        }
+        .brand .logo {
+            color: #ffd700;
+            font-size: 22px;
+        }
+        .brand .sub {
+            color: #b388ff;
+            font-size: 11px;
+            opacity: 0.5;
+        }
+
+        .wallet-box {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 5px 14px;
+            border-radius: 40px;
+            border: 1.5px solid rgba(255, 215, 0, 0.12);
+            color: #fff;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 15px;
+            backdrop-filter: blur(4px);
+        }
+        .wallet-box span {
+            color: #ffd700;
+            font-size: 16px;
+        }
+
+        /* ===== BATTLE TABLE ===== */
+        .battle-table {
+            background: radial-gradient(circle at 40% 30%, #1a7a3a, #0a3a1a);
+            border: 6px solid #b37d14;
+            border-radius: 40px;
+            width: 100%;
+            padding: 18px 10px 14px;
+            position: relative;
+            flex: 1;
+            min-height: 300px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6), inset 0 0 50px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            margin: 4px 0 8px;
+        }
+
+        /* ===== CENTER TIMER ===== */
+        .center-timer {
+            position: absolute;
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #e040fb, #9c27b0);
+            border: 4px solid #ffd700;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: 900;
+            font-size: 20px;
+            z-index: 20;
+            box-shadow: 0 0 30px rgba(224, 64, 251, 0.4);
+        }
+
+        /* ===== BATTLE GRID ===== */
+        .battle-grid {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            width: 100%;
+            height: 100%;
+            align-items: stretch;
+        }
+
+        .side-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            gap: 6px;
+        }
+
+        /* ===== CARDS ===== */
+        .card-box {
+            height: 80px;
+            perspective: 800px;
+            flex-shrink: 0;
+        }
+
+        .card-3d {
+            width: 56px;
+            height: 78px;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 0 auto;
+        }
+        .card-3d.reveal {
+            transform: rotateY(180deg);
+        }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            font-size: 14px;
+            border: 2px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #d32f2f, #8b0000);
+            color: #fff;
+            font-size: 28px;
+        }
+        .card-back.tiger-back {
+            background: linear-gradient(135deg, #1e88e5, #0d47a1);
+        }
+
+        .card-front {
+            background: #fff;
+            color: #1a1a1a;
+            transform: rotateY(180deg);
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .card-front.red {
+            color: #d32f2f;
+        }
+
+        .card-front .suit-big {
+            font-size: 32px;
+            margin-top: 2px;
+        }
+
+        /* ===== BET CHAIR ===== */
+        .bet-chair {
+            width: 100%;
+            height: 100px;
+            border-radius: 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: 900;
+            font-size: 22px;
+            cursor: pointer;
+            position: relative;
+            transition: transform 0.1s, box-shadow 0.2s;
+            box-shadow: inset 0 -5px 0 rgba(0, 0, 0, 0.25), 0 6px 16px rgba(0, 0, 0, 0.4);
+            flex-shrink: 0;
+        }
+        .bet-chair:active {
+            transform: scale(0.93);
+        }
+        .bet-chair:hover {
+            filter: brightness(1.05);
+        }
+
+        .chair-dragon {
+            background: linear-gradient(135deg, #e53935, #b71c1c);
+            border: 2px solid #ff5252;
+        }
+        .chair-tiger {
+            background: linear-gradient(135deg, #ffb300, #f57c00);
+            border: 2px solid #ffe082;
+            color: #1a1a1a;
+        }
+
+        .chair-title {
+            font-size: 14px;
+            font-weight: 700;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
+        .chair-icon {
+            font-size: 28px;
+        }
+
+        /* ===== CHIPS DROP ===== */
+        .chips-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .falling-chip {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.25);
+            color: #fff;
+            font-size: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 900;
+            position: absolute;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.4);
+            animation: dropAnim 0.4s ease-out forwards;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        @keyframes dropAnim {
+            0% {
+                transform: translate(-50%, -40px) scale(1.3);
+                opacity: 0;
+            }
+            100% {
+                transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--dr));
+                opacity: 1;
+            }
+        }
+
+        /* ===== INFO PLATE ===== */
+        .plate-info {
+            background: rgba(255, 245, 215, 0.92);
+            width: 100%;
+            text-align: center;
+            border-radius: 10px;
+            padding: 4px 2px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #422300;
+            border: 2px solid #bda052;
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+            flex-shrink: 0;
+            line-height: 1.4;
+        }
+        .plate-info .pot {
+            color: #c2185b;
+            font-size: 12px;
+        }
+        .plate-info .my-bet {
+            color: #2e7d32;
+            font-weight: 800;
+        }
+
+        /* ===== BOTTOM TRAY ===== */
+        .bottom-tray {
+            background: rgba(0, 0, 0, 0.35);
+            border-top: 1px solid rgba(255, 215, 0, 0.05);
+            padding: 8px 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 6px;
+            flex-shrink: 0;
+            border-radius: 40px;
+            backdrop-filter: blur(4px);
+            margin-top: 4px;
+        }
+        .tray-label {
+            color: #aaa;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .chips-group {
+            display: flex;
+            gap: 5px;
+        }
+        .chip-btn {
+            width: 44px;
+            aspect-ratio: 1;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: 900;
+            font-size: 10px;
+            cursor: pointer;
+            border: 2px solid rgba(255, 255, 255, 0.06);
+            box-shadow: 0 3px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.12s, border 0.12s, box-shadow 0.12s;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .chip-btn:active {
+            transform: scale(0.9);
+        }
+        .chip-btn.active {
+            transform: scale(1.08);
+            border: 2px solid #fff;
+            box-shadow: 0 0 20px currentColor, 0 3px 0 rgba(0, 0, 0, 0.3);
+            z-index: 5;
+        }
+        .chip-10 {
+            background: linear-gradient(145deg, #1e88e5, #0d47a1);
+        }
+        .chip-100 {
+            background: linear-gradient(145deg, #8e24aa, #4a148c);
+        }
+        .chip-1k {
+            background: linear-gradient(145deg, #e53935, #b71c1c);
+        }
+        .chip-5k {
+            background: linear-gradient(145deg, #ffb300, #f57c00);
+            color: #1a1a1a;
+        }
+
+        /* ===== RESULT BANNER ===== */
+        .result-banner {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.88);
+            backdrop-filter: blur(12px);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            text-align: center;
+            z-index: 50;
+            border-radius: 28px;
+            animation: modalIn 0.4s ease;
+        }
+        .result-banner.show {
+            display: flex;
+        }
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+        .result-banner .trophy {
+            font-size: 52px;
+            margin-bottom: 4px;
+            filter: drop-shadow(0 8px 25px rgba(255, 215, 0, 0.3));
+        }
+        .result-banner h1 {
+            font-size: 28px;
+            color: #ffd700;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
+            margin-bottom: 4px;
+        }
+        .result-banner p {
+            font-size: 14px;
+            color: #b388ff;
+            max-width: 80%;
+            line-height: 1.5;
+        }
+        .result-banner .prize {
+            color: #00ffcc;
+            font-size: 20px;
+            font-weight: 900;
+            margin-top: 4px;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            text-align: center;
+            color: #b388ff;
+            font-size: 11px;
+            padding-top: 6px;
+            opacity: 0.4;
+            flex-shrink: 0;
+            border-top: 1px solid rgba(255, 215, 0, 0.03);
+            margin-top: 4px;
+        }
+        .footer span {
+            color: #ffd740;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 420px) {
+            .card-box {
+                height: 66px;
+            }
+            .card-3d {
+                width: 46px;
+                height: 64px;
+            }
+            .card-face {
+                font-size: 12px;
+            }
+            .card-front .suit-big {
+                font-size: 24px;
+            }
+            .bet-chair {
+                height: 84px;
+                font-size: 18px;
+                border-radius: 14px;
+            }
+            .chair-icon {
+                font-size: 22px;
+            }
+            .chair-title {
+                font-size: 12px;
+            }
+            .plate-info {
+                font-size: 9px;
+            }
+            .plate-info .pot {
+                font-size: 10px;
+            }
+            .chip-btn {
+                width: 38px;
+                font-size: 9px;
+            }
+            .center-timer {
+                width: 44px;
+                height: 44px;
+                font-size: 17px;
+                top: -20px;
+            }
+            .battle-table {
+                padding: 14px 6px 10px;
+                min-height: 260px;
+                border-width: 5px;
+            }
+            .brand {
+                font-size: 14px;
+            }
+            .wallet-box {
+                font-size: 13px;
+                padding: 4px 10px;
+            }
+            .result-banner h1 {
+                font-size: 22px;
+            }
+        }
+        @media (max-width: 370px) {
+            .card-box {
+                height: 56px;
+            }
+            .card-3d {
+                width: 38px;
+                height: 54px;
+            }
+            .card-face {
+                font-size: 10px;
+            }
+            .card-front .suit-big {
+                font-size: 20px;
+            }
+            .bet-chair {
+                height: 70px;
+                font-size: 15px;
+                border-radius: 12px;
+            }
+            .chair-icon {
+                font-size: 18px;
+            }
+            .chair-title {
+                font-size: 10px;
+            }
+            .plate-info {
+                font-size: 8px;
+                padding: 2px 2px;
+            }
+            .plate-info .pot {
+                font-size: 9px;
+            }
+            .chip-btn {
+                width: 32px;
+                font-size: 7px;
+                border-width: 1.5px;
+            }
+            .center-timer {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+                top: -17px;
+                border-width: 3px;
+            }
+            .battle-table {
+                padding: 12px 4px 8px;
+                min-height: 220px;
+                border-width: 4px;
+                border-radius: 30px;
+            }
+            .bottom-tray {
+                padding: 5px 6px;
+            }
+            .tray-label {
+                font-size: 8px;
+            }
+            .brand {
+                font-size: 12px;
+            }
+            .brand .logo {
+                font-size: 18px;
+            }
+            .wallet-box {
+                font-size: 11px;
+                padding: 3px 8px;
+            }
+            .result-banner h1 {
+                font-size: 18px;
+            }
+            .result-banner .trophy {
+                font-size: 40px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-app">
+
+        <!-- ===== HEADER ===== -->
+        <div class="app-header">
+            <div class="brand">
+                <span class="logo">🐉</span>
+                التنين ضد النمر
+                <span class="sub">| معركة</span>
+            </div>
+            <div class="wallet-box">
+                💎 <span id="balanceTxt">15000</span>
+            </div>
+        </div>
+
+        <!-- ===== BATTLE TABLE ===== -->
+        <div class="battle-table">
+            <div class="center-timer" id="timerBox">12</div>
+
+            <div class="battle-grid">
+                <!-- DRAGON -->
+                <div class="side-column" data-side="DRAGON">
+                    <div class="card-box">
+                        <div class="card-3d" id="card-DRAGON">
+                            <div class="card-face card-back">🐉</div>
+                            <div class="card-face card-front" id="front-DRAGON">?</div>
+                        </div>
+                    </div>
+                    <div class="bet-chair chair-dragon">
+                        <span class="chair-icon">🐉</span>
+                        <span class="chair-title">التنين</span>
+                        <div class="chips-container" id="chips-DRAGON"></div>
+                    </div>
+                    <div class="plate-info">
+                        إجمالي: <span class="pot" id="pot-DRAGON">2500</span><br>
+                        رهانك: <span class="my-bet" id="my-DRAGON">0</span>
+                    </div>
+                </div>
+
+                <!-- TIGER -->
+                <div class="side-column" data-side="TIGER">
+                    <div class="card-box">
+                        <div class="card-3d" id="card-TIGER">
+                            <div class="card-face card-back tiger-back">🐯</div>
+                            <div class="card-face card-front" id="front-TIGER">?</div>
+                        </div>
+                    </div>
+                    <div class="bet-chair chair-tiger">
+                        <span class="chair-icon">🐯</span>
+                        <span class="chair-title">النمر</span>
+                        <div class="chips-container" id="chips-TIGER"></div>
+                    </div>
+                    <div class="plate-info">
+                        إجمالي: <span class="pot" id="pot-TIGER">1800</span><br>
+                        رهانك: <span class="my-bet" id="my-TIGER">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== BOTTOM TRAY ===== -->
+        <div class="bottom-tray">
+            <div class="tray-label">رقاقة:</div>
+            <div class="chips-group">
+                <div class="chip-btn chip-10 active" data-val="10">10</div>
+                <div class="chip-btn chip-100" data-val="100">100</div>
+                <div class="chip-btn chip-1k" data-val="1000">1K</div>
+                <div class="chip-btn chip-5k" data-val="5000">5K</div>
+            </div>
+        </div>
+
+        <!-- ===== RESULT BANNER ===== -->
+        <div class="result-banner" id="resultBanner">
+            <div class="trophy">🏆</div>
+            <h1 id="winTitle">فاز التنين! 🐉</h1>
+            <p id="winDesc">تم الكشف عن الأوراق بنجاح</p>
+            <div class="prize" id="winPrize">+0 💎</div>
+        </div>
+
+        <!-- ===== FOOTER ===== -->
+        <div class="footer">
+            💻 <span>مبرمج مرتضى</span> 🚀
+        </div>
+
+    </div>
+
+    <script>
+        // ================================================================
+        //  DRAGON VS TIGER ENGINE
+        // ================================================================
+
+        // ===== STATE =====
+        const State = {
+            balance: 15000,
+            chipVal: 10,
+            betting: true,
+            timer: 12,
+            pots: { DRAGON: 2500, TIGER: 1800 },
+            myBets: { DRAGON: 0, TIGER: 0 },
+            suits: ['♠', '♥', '♦', '♣'],
+            values: ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2'],
+            scoreMap: { 'A': 14, 'K': 13, 'Q': 12, 'J': 11, '10': 10, '9': 9, '8': 8, '7': 7, '6': 6, '5': 5, '4': 4,
+                '3': 3, '2': 2 },
+            running: false
+        };
+
+        // ===== SOUND =====
+        const Sound = {
+            ctx: null,
+            init() { if (!this.ctx) this.ctx = new(window.AudioContext || window.webkitAudioContext)(); },
+            play(freq, dur, type = 'square') {
+                this.init();
+                if (!this.ctx) return;
+                try {
+                    const o = this.ctx.createOscillator(),
+                        g = this.ctx.createGain();
+                    o.type = type;
+                    o.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    g.gain.setValueAtTime(0.04, this.ctx.currentTime);
+                    g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+                    o.connect(g);
+                    g.connect(this.ctx.destination);
+                    o.start();
+                    o.stop(this.ctx.currentTime + dur);
+                } catch (e) {}
+            },
+            click() { this.play(480, 0.05); },
+            chipDrop() { this.play(587, 0.06); },
+            cardFlip() { this.play(650, 0.08, 'triangle'); },
+            win() { this.play(950, 0.15, 'sine'); },
+            lose() { this.play(200, 0.2, 'sawtooth'); },
+            tick() { this.play(800, 0.04, 'sine'); }
+        };
+
+        // ===== DOM =====
+        const $ = id => document.getElementById(id);
+        const balanceTxt = $('balanceTxt');
+        const timerBox = $('timerBox');
+        const resultBanner = $('resultBanner');
+        const winTitle = $('winTitle');
+        const winDesc = $('winDesc');
+        const winPrize = $('winPrize');
+        const chipBtns = document.querySelectorAll('.chip-btn');
+        const chairs = document.querySelectorAll('.bet-chair');
+
+        // ===== UPDATE UI =====
+        function updateUI() {
+            balanceTxt.innerText = State.balance;
+            ['DRAGON', 'TIGER'].forEach(s => {
+                $(`pot-${s}`).innerText = State.pots[s];
+                $(`my-${s}`).innerText = State.myBets[s];
+            });
+        }
+
+        // ===== CHIP SELECTION =====
+        chipBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (!State.betting) return;
+                Sound.click();
+                chipBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                State.chipVal = parseInt(btn.dataset.val);
+            });
+        });
+
+        // ===== BET =====
+        chairs.forEach(chair => {
+            chair.addEventListener('click', () => {
+                if (!State.betting || State.running) return;
+                const side = chair.parentElement.dataset.side;
+                const val = State.chipVal;
+                if (State.balance < val) {
+                    Sound.play(220, 0.15);
+                    return;
+                }
+
+                Sound.chipDrop();
+                State.balance -= val;
+                State.myBets[side] += val;
+                State.pots[side] += val;
+                updateUI();
+
+                // Drop chip animation
+                const container = $(`chips-${side}`);
+                const chip = document.createElement('div');
+                chip.className = 'falling-chip';
+
+                const colors = { 10: '#1e88e5', 100: '#8e24aa', 1000: '#e53935', 5000: '#ffb300' };
+                chip.style.background = colors[val] || '#8e24aa';
+                chip.innerText = val >= 1000 ? (val / 1000) + 'K' : val;
+
+                chip.style.setProperty('--dx', (Math.random() * 40 - 20) + 'px');
+                chip.style.setProperty('--dy', (Math.random() * 30 - 15) + 'px');
+                chip.style.setProperty('--dr', (Math.random() * 60 - 30) + 'deg');
+
+                container.appendChild(chip);
+                setTimeout(() => { if (chip.parentNode) chip.remove(); }, 2000);
+            });
+        });
+
+        // ===== START ROUND =====
+        function startRound() {
+            State.betting = true;
+            State.running = false;
+            State.timer = 12;
+            timerBox.innerText = State.timer;
+            resultBanner.classList.remove('show');
+
+            // Reset cards
+            $('card-DRAGON').classList.remove('reveal');
+            $('card-TIGER').classList.remove('reveal');
+            $('front-DRAGON').innerText = '?';
+            $('front-TIGER').innerText = '?';
+
+            // Reset bets
+            ['DRAGON', 'TIGER'].forEach(s => {
+                State.myBets[s] = 0;
+                $(`chips-${s}`).innerHTML = '';
+            });
+            updateUI();
+
+            let interval = setInterval(() => {
+                State.timer--;
+                timerBox.innerText = State.timer;
+                if (State.timer <= 3 && State.timer > 0) Sound.tick();
+                if (State.timer <= 0) {
+                    clearInterval(interval);
+                    endRound();
+                }
+            }, 1000);
+        }
+
+        // ===== END ROUND =====
+        function endRound() {
+            State.betting = false;
+            State.running = true;
+            timerBox.innerText = '🔒';
+
+            // Generate random cards
+            const dSuit = State.suits[Math.floor(Math.random() * State.suits.length)];
+            const dVal = State.values[Math.floor(Math.random() * State.values.length)];
+            const tSuit = State.suits[Math.floor(Math.random() * State.suits.length)];
+            const tVal = State.values[Math.floor(Math.random() * State.values.length)];
+
+            // Set card fronts
+            const fDragon = $('front-DRAGON');
+            const fTiger = $('front-TIGER');
+
+            fDragon.innerHTML = `${dVal}<br><span class="suit-big">${dSuit}</span>`;
+            fDragon.className = `card-face card-front ${(dSuit === '♥' || dSuit === '♦') ? 'red' : ''}`;
+
+            fTiger.innerHTML = `${tVal}<br><span class="suit-big">${tSuit}</span>`;
+            fTiger.className = `card-face card-front ${(tSuit === '♥' || tSuit === '♦') ? 'red' : ''}`;
+
+            // Flip cards with delay
+            setTimeout(() => {
+                Sound.cardFlip();
+                $('card-DRAGON').classList.add('reveal');
+            }, 300);
+
+            setTimeout(() => {
+                Sound.cardFlip();
+                $('card-TIGER').classList.add('reveal');
+            }, 600);
+
+            // Calculate winner
+            setTimeout(() => {
+                const dScore = State.scoreMap[dVal];
+                const tScore = State.scoreMap[tVal];
+
+                let winner = 'TIE';
+                if (dScore > tScore) winner = 'DRAGON';
+                if (tScore > dScore) winner = 'TIGER';
+
+                let payout = 0;
+                let prizeText = '';
+
+                if (winner !== 'TIE' && State.myBets[winner] > 0) {
+                    payout = State.myBets[winner] * 2;
+                    State.balance += payout;
+                    updateUI();
+                    Sound.win();
+                    prizeText = `+${payout} 💎`;
+                } else if (winner === 'TIE' && (State.myBets.DRAGON > 0 || State.myBets.TIGER > 0)) {
+                    const refund = Math.floor((State.myBets.DRAGON + State.myBets.TIGER) * 0.5);
+                    State.balance += refund;
+                    updateUI();
+                    prizeText = `+${refund} 💎 (تعادل)`;
+                } else {
+                    Sound.lose();
+                    prizeText = '0 💎';
+                }
+
+                // Show result
+                if (winner === 'DRAGON') {
+                    winTitle.innerText = '🐉 فاز التنين!';
+                    winTitle.style.color = '#ff5252';
+                } else if (winner === 'TIGER') {
+                    winTitle.innerText = '🐯 فاز النمر!';
+                    winTitle.style.color = '#ffb300';
+                } else {
+                    winTitle.innerText = '🤝 تعادل!';
+                    winTitle.style.color = '#fff';
+                }
+
+                winDesc.innerText = payout > 0 ? 'تهانينا! توقعك كان موفقاً' : 'حظاً أوفر في الجولة القادمة';
+                winPrize.innerText = prizeText;
+                resultBanner.classList.add('show');
+
+                setTimeout(startRound, 4000);
+            }, 1500);
+        }
+
+        // ===== INIT =====
+        updateUI();
+        startRound();
+
+        console.log('🐉 التنين ضد النمر - جاهزة للعب');
+    </script>
+
+</body>
+</html>

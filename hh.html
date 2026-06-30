@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تحدي طعام جشع - الإضاءة الدائرية</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body,
+        html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #0d0221;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #game-app {
+            width: 100%;
+            max-width: 460px;
+            height: 100%;
+            max-height: 820px;
+            background: radial-gradient(circle at 20% 30%, #5f2fc9, #1f0a4a);
+            display: flex;
+            flex-direction: column;
+            padding: 14px 16px 18px;
+            position: relative;
+            overflow: hidden;
+            border-radius: 36px 36px 28px 28px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.7), inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        }
+
+        /* ===== HEADER ===== */
+        .header-hud {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+            padding: 0 4px;
+            flex-shrink: 0;
+        }
+        .hud-btn-group {
+            display: flex;
+            gap: 8px;
+        }
+        .hud-icon-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(0, 229, 255, 0.12);
+            backdrop-filter: blur(2px);
+            border: 2px solid #00e5ff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: 0.15s;
+        }
+        .hud-icon-btn:active {
+            transform: scale(0.85);
+            background: #00e5ff40;
+        }
+
+        .gems-counter {
+            background: #11062e;
+            padding: 6px 16px;
+            border-radius: 40px;
+            border: 2px solid #b388ff;
+            color: #fff;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 16px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+        .gems-counter span {
+            color: #ffd54f;
+            font-size: 18px;
+        }
+
+        /* ===== WHEEL ===== */
+        .wheel-theater {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-shrink: 0;
+            margin: 4px 0 2px;
+        }
+        .central-plate {
+            width: 120px;
+            height: 120px;
+            background: radial-gradient(circle at 30% 30%, #ff8a65, #d84315);
+            border: 6px solid #ffd700;
+            border-radius: 50%;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 0 50px rgba(255, 215, 0, 0.25), inset 0 -4px 0 #bf360c;
+        }
+        .central-plate .timer-label {
+            font-size: 12px;
+            opacity: 0.9;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
+        }
+        .central-plate .countdown {
+            font-size: 34px;
+            font-weight: 900;
+            text-shadow: 0 3px 0 #bf360c;
+            letter-spacing: 2px;
+            transition: all 0.2s;
+        }
+        .above-countdown {
+            font-size: 13px;
+            font-weight: 800;
+            color: #ffd740;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 0 14px;
+            border-radius: 30px;
+            margin-bottom: 2px;
+        }
+
+        /* ===== FOOD SLOTS ===== */
+        .food-slot {
+            position: absolute;
+            width: 76px;
+            background: #ffe082;
+            border: 4px solid #ffb300;
+            border-radius: 18px;
+            padding: 3px 2px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0px;
+            box-shadow: 0 6px 0 #b26500, 0 10px 20px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
+            z-index: 10;
+            transition: border-color 0.12s, box-shadow 0.12s, transform 0.08s;
+            background: linear-gradient(145deg, #ffecb3, #ffd54f);
+        }
+        .food-slot:active {
+            transform: scale(0.92);
+        }
+        .food-slot.user-selected {
+            border-color: #e0125a;
+            box-shadow: 0 0 0 3px #ff4081, 0 6px 0 #b26500;
+        }
+        .food-slot.lit-up {
+            border-color: #00ffff !important;
+            background: #ffffff !important;
+            box-shadow: 0 0 40px #00e5ff, 0 0 80px #00b8d4, inset 0 0 20px rgba(0, 229, 255, 0.3);
+            transform: scale(1.12);
+            z-index: 25;
+            transition: 0.05s;
+        }
+        .food-slot.winner-flash {
+            animation: winPulse 0.5s ease 3;
+        }
+        @keyframes winPulse {
+            0% {
+                box-shadow: 0 0 30px #ffea00, 0 0 60px #ffd600;
+            }
+            50% {
+                box-shadow: 0 0 80px #ffea00, 0 0 150px #ffab00;
+                transform: scale(1.2);
+            }
+            100% {
+                box-shadow: 0 0 30px #ffea00, 0 0 60px #ffd600;
+            }
+        }
+        .food-icon {
+            font-size: 28px;
+            line-height: 1.1;
+            filter: drop-shadow(0 3px 6px rgba(0, 0, 0, 0.3));
+        }
+        .food-multiplier {
+            background: rgba(0, 0, 0, 0.6);
+            color: #ffd740;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 1px 6px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.15);
+            width: 85%;
+            text-align: center;
+        }
+        .bet-placed-badge {
+            position: absolute;
+            top: -12px;
+            right: -10px;
+            background: #d500f9;
+            color: #fff;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 30px;
+            font-weight: 800;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 12px rgba(213, 0, 249, 0.5);
+            z-index: 30;
+        }
+
+        /* ===== STATS ===== */
+        .stats-banner {
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(179, 136, 255, 0.08);
+            padding: 10px 6px;
+            border-radius: 40px;
+            text-align: center;
+            color: #c4b0d9;
+            font-size: 14px;
+            font-weight: 600;
+            flex-shrink: 0;
+            margin-bottom: 5px;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        .stats-banner span {
+            color: #ffd700;
+            margin: 0 4px;
+            font-size: 17px;
+        }
+        .action-guide-bar {
+            background: linear-gradient(90deg, #ff4081, #d500f9);
+            color: #fff;
+            text-align: center;
+            font-weight: 800;
+            padding: 7px 4px;
+            border-radius: 40px;
+            font-size: 13px;
+            flex-shrink: 0;
+            margin-bottom: 8px;
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+            letter-spacing: 0.3px;
+        }
+
+        /* ===== CHIPS ===== */
+        .chips-board {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(179, 136, 255, 0.06);
+            border-radius: 40px;
+            padding: 10px 8px;
+            display: flex;
+            justify-content: space-between;
+            gap: 5px;
+            flex-shrink: 0;
+            margin-bottom: 10px;
+            box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.4);
+        }
+        .chip-item {
+            flex: 1;
+            aspect-ratio: 1;
+            max-width: 58px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            font-weight: 900;
+            font-size: 13px;
+            cursor: pointer;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 0 rgba(0, 0, 0, 0.3);
+            transition: transform 0.1s, border 0.1s, box-shadow 0.1s;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        .chip-item.active {
+            transform: scale(1.08);
+            border: 3px solid #fff;
+            box-shadow: 0 0 25px currentColor, 0 4px 0 rgba(0, 0, 0, 0.3);
+            z-index: 5;
+        }
+        .chip-item:active {
+            transform: scale(0.9);
+        }
+        .chip-100 {
+            background: linear-gradient(145deg, #43a047, #2e7d32);
+        }
+        .chip-500 {
+            background: linear-gradient(145deg, #1e88e5, #0d47a1);
+        }
+        .chip-1k {
+            background: linear-gradient(145deg, #fb8c00, #e65100);
+        }
+        .chip-5k {
+            background: linear-gradient(145deg, #e91e63, #880e4f);
+        }
+        .chip-10k {
+            background: linear-gradient(145deg, #8e24aa, #4a148c);
+        }
+
+        /* ===== HISTORY ===== */
+        .history-strip {
+            background: rgba(0, 0, 0, 0.35);
+            border-radius: 40px;
+            padding: 4px 12px;
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            align-items: center;
+            border: 1px solid rgba(179, 136, 255, 0.05);
+            min-height: 42px;
+            flex-shrink: 0;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(179, 136, 255, 0.15) transparent;
+        }
+        .history-strip::-webkit-scrollbar {
+            height: 3px;
+        }
+        .history-strip::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .history-strip::-webkit-scrollbar-thumb {
+            background: rgba(179, 136, 255, 0.15);
+            border-radius: 10px;
+        }
+        .history-node {
+            width: 34px;
+            height: 34px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+            border: 1px solid rgba(179, 136, 255, 0.05);
+            flex-shrink: 0;
+        }
+
+        /* ===== FOOTER ===== */
+        .developer-credit {
+            text-align: center;
+            color: #b388ff;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 0 0;
+            letter-spacing: 0.5px;
+            opacity: 0.6;
+        }
+        .developer-credit span {
+            color: #ffd740;
+        }
+
+        /* ===== نافذة المنتصرين ===== */
+        #winnersModal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(12px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+            border-radius: 36px;
+        }
+        #winnersModal.show {
+            display: flex;
+            animation: modalIn 0.4s ease;
+        }
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+        .winners-box {
+            background: linear-gradient(160deg, #2d1b4e, #1a0a3a);
+            border: 2px solid #ffd700;
+            border-radius: 24px;
+            padding: 28px 30px 22px;
+            max-width: 92%;
+            width: 380px;
+            max-height: 80%;
+            overflow-y: auto;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+        .winners-box::before {
+            content: '🏆';
+            position: absolute;
+            top: -18px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 40px;
+            filter: drop-shadow(0 8px 20px rgba(255, 215, 0, 0.4));
+        }
+        .winners-box h2 {
+            color: #ffd700;
+            font-size: 26px;
+            text-align: center;
+            margin-top: 8px;
+            margin-bottom: 2px;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.15);
+        }
+        .winners-box .subtitle {
+            color: #b388ff;
+            text-align: center;
+            font-size: 13px;
+            margin-bottom: 16px;
+            opacity: 0.7;
+        }
+        .winner-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 14px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(255, 215, 0, 0.06);
+            transition: background 0.2s, transform 0.2s;
+        }
+        .winner-item:hover {
+            background: rgba(255, 215, 0, 0.06);
+            transform: translateX(4px);
+        }
+        .winner-item .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+        }
+        .winner-item .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ffd700, #f57c00);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 16px;
+            font-weight: 900;
+            color: #1a0a30;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(255, 215, 0, 0.2);
+        }
+        .winner-item .name {
+            color: #fff;
+            font-weight: 600;
+            font-size: 15px;
+        }
+        .winner-item .food-icon {
+            font-size: 22px;
+            margin: 0 6px;
+        }
+        .winner-item .prize {
+            color: #ffd740;
+            font-weight: 700;
+            font-size: 15px;
+            background: rgba(255, 215, 0, 0.08);
+            padding: 2px 12px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+        .winner-item .rank-badge {
+            background: rgba(255, 215, 0, 0.12);
+            color: #ffd700;
+            font-size: 11px;
+            font-weight: 800;
+            padding: 2px 10px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 215, 0, 0.08);
+        }
+        .close-modal-btn {
+            display: block;
+            margin: 18px auto 0;
+            padding: 10px 45px;
+            border-radius: 50px;
+            border: none;
+            background: linear-gradient(135deg, #ffd700, #f57c00);
+            color: #1a0a30;
+            font-size: 16px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2);
+        }
+        .close-modal-btn:hover {
+            transform: scale(1.04);
+            box-shadow: 0 6px 30px rgba(255, 215, 0, 0.3);
+        }
+        .close-modal-btn:active {
+            transform: scale(0.95);
+        }
+        .no-winners {
+            color: #b388ff;
+            text-align: center;
+            padding: 30px 20px;
+            font-size: 15px;
+            opacity: 0.6;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 420px) {
+            .food-slot {
+                width: 64px;
+            }
+            .food-icon {
+                font-size: 24px;
+            }
+            .food-multiplier {
+                font-size: 10px;
+                padding: 1px 4px;
+            }
+            .central-plate {
+                width: 100px;
+                height: 100px;
+            }
+            .central-plate .countdown {
+                font-size: 28px;
+            }
+            .chip-item {
+                font-size: 11px;
+                max-width: 48px;
+            }
+            .gems-counter {
+                font-size: 14px;
+                padding: 4px 12px;
+            }
+            .winners-box {
+                padding: 22px 18px 18px;
+            }
+            .winner-item {
+                padding: 8px 10px;
+            }
+            .winner-item .avatar {
+                width: 32px;
+                height: 32px;
+                font-size: 14px;
+            }
+        }
+        @media (max-width: 370px) {
+            .food-slot {
+                width: 54px;
+            }
+            .food-icon {
+                font-size: 20px;
+            }
+            .food-multiplier {
+                font-size: 9px;
+                padding: 0px 3px;
+            }
+            .central-plate {
+                width: 84px;
+                height: 84px;
+            }
+            .central-plate .countdown {
+                font-size: 24px;
+            }
+            .chip-item {
+                font-size: 9px;
+                max-width: 40px;
+            }
+            .gems-counter {
+                font-size: 12px;
+                padding: 3px 10px;
+            }
+            .hud-icon-btn {
+                width: 32px;
+                height: 32px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="game-app">
+
+        <!-- ===== نافذة المنتصرين ===== -->
+        <div id="winnersModal">
+            <div class="winners-box">
+                <h2>🏆 المنتصرون</h2>
+                <div class="subtitle">الفائزون في هذه الجولة</div>
+                <div id="winnersList"></div>
+                <button class="close-modal-btn" onclick="closeWinnersModal()">✕ إغلاق</button>
+            </div>
+        </div>
+
+        <!-- ===== HEADER ===== -->
+        <div class="header-hud">
+            <div class="hud-btn-group">
+                <div class="hud-icon-btn" onclick="location.reload()">⟳</div>
+                <div class="hud-icon-btn">⚡</div>
+            </div>
+            <div class="gems-counter">💎 <span id="balanceTxt">10000</span></div>
+        </div>
+
+        <!-- ===== WHEEL ===== -->
+        <div class="wheel-theater">
+            <div class="central-plate">
+                <div class="above-countdown">⬇ تحت ⬇</div>
+                <div class="timer-label">⏳ رسم</div>
+                <div class="countdown" id="countdownTxt">30s</div>
+            </div>
+
+            <div class="food-slot" style="top: 8px; left: calc(50% - 38px);" data-index="0">
+                <div class="food-icon">🍎</div>
+                <div class="food-multiplier">x5</div>
+            </div>
+            <div class="food-slot" style="top: 44px; right: 14px;" data-index="1">
+                <div class="food-icon">🍋</div>
+                <div class="food-multiplier">x5</div>
+            </div>
+            <div class="food-slot" style="top: calc(50% - 36px); right: 4px;" data-index="2">
+                <div class="food-icon">🍓</div>
+                <div class="food-multiplier">x5</div>
+            </div>
+            <div class="food-slot" style="bottom: 44px; right: 14px;" data-index="3">
+                <div class="food-icon">🥭</div>
+                <div class="food-multiplier">x5</div>
+            </div>
+            <div class="food-slot" style="bottom: 8px; left: calc(50% - 38px);" data-index="4">
+                <div class="food-icon">🐟</div>
+                <div class="food-multiplier">x10</div>
+            </div>
+            <div class="food-slot" style="bottom: 44px; left: 14px;" data-index="5">
+                <div class="food-icon">🍔</div>
+                <div class="food-multiplier">x15</div>
+            </div>
+            <div class="food-slot" style="top: calc(50% - 36px); left: 4px;" data-index="6">
+                <div class="food-icon">🍕</div>
+                <div class="food-multiplier">x25</div>
+            </div>
+            <div class="food-slot" style="top: 44px; left: 14px;" data-index="7">
+                <div class="food-icon">🍗</div>
+                <div class="food-multiplier">x45</div>
+            </div>
+        </div>
+
+        <!-- ===== STATS ===== -->
+        <div>
+            <div class="stats-banner">🏆 انتصارات اليوم: <span id="winStatsTxt">0</span></div>
+            <div class="action-guide-bar">⬇️ اختر رقاقة ← اضغط على طعام</div>
+        </div>
+
+        <!-- ===== CHIPS ===== -->
+        <div class="chips-board">
+            <div class="chip-item chip-100 active" data-val="100">100</div>
+            <div class="chip-item chip-500" data-val="500">500</div>
+            <div class="chip-item chip-1k" data-val="1000">1K</div>
+            <div class="chip-item chip-5k" data-val="5000">5K</div>
+            <div class="chip-item chip-10k" data-val="10000">10K</div>
+        </div>
+
+        <!-- ===== HISTORY ===== -->
+        <div class="history-strip" id="historyStrip"></div>
+
+        <div class="developer-credit">💻 <span>مبرمج مرتضى</span> 🚀</div>
+    </div>
+
+    <script>
+        // ================================================================
+        //  GAME ENGINE - بدون تسجيل دخول
+        // ================================================================
+
+        // ===== GAME STATE =====
+        const G = {
+            balance: 10000,
+            todayWins: 0,
+            chipValue: 100,
+            activeBets: {},
+            isRunning: false,
+            countdown: 30,
+            userName: 'لاعب',
+            userId: 'player_' + Date.now().toString(36),
+            foods: [
+                { icon: "🍎", mult: 5 }, { icon: "🍋", mult: 5 }, { icon: "🍓", mult: 5 }, { icon: "🥭", mult: 5 },
+                { icon: "🐟", mult: 10 }, { icon: "🍔", mult: 15 }, { icon: "🍕", mult: 25 }, { icon: "🍗", mult: 45 }
+            ]
+        };
+
+        // ===== SOUND ENGINE =====
+        const Sound = {
+            ctx: null,
+            init() { if (!this.ctx) this.ctx = new(window.AudioContext || window.webkitAudioContext)(); },
+            tick(freq = 640, dur = 0.04) {
+                this.init();
+                if (!this.ctx) return;
+                const osc = this.ctx.createOscillator(),
+                    gain = this.ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                gain.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                osc.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start();
+                osc.stop(this.ctx.currentTime + dur);
+            },
+            win() {
+                this.init();
+                if (!this.ctx) return;
+                [880, 1100, 1320, 1540].forEach((f, i) => {
+                    const osc = this.ctx.createOscillator(),
+                        gain = this.ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(f, this.ctx.currentTime + i * 0.08);
+                    gain.gain.setValueAtTime(0.06, this.ctx.currentTime + i * 0.08);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start(this.ctx.currentTime + i * 0.08);
+                    osc.stop(this.ctx.currentTime + i * 0.08 + 0.2);
+                });
+            },
+            bet() { this.init();
+                this.tick(520, 0.07); }
+        };
+
+        // ===== DOM REFS =====
+        const $ = id => document.getElementById(id);
+        const balanceTxt = $('balanceTxt');
+        const winStatsTxt = $('winStatsTxt');
+        const countdownTxt = $('countdownTxt');
+        const historyStrip = $('historyStrip');
+        const winnersModal = $('winnersModal');
+        const winnersList = $('winnersList');
+        const foodSlots = document.querySelectorAll('.food-slot');
+        const chipItems = document.querySelectorAll('.chip-item');
+
+        // ===== FUNCTIONS =====
+        window.closeWinnersModal = function() {
+            winnersModal.classList.remove('show');
+        };
+
+        function showWinnersModal(winners) {
+            winnersList.innerHTML = '';
+            if (!winners || winners.length === 0) {
+                winnersList.innerHTML = '<div class="no-winners">😅 لا يوجد فائزون في هذه الجولة</div>';
+            } else {
+                winners.forEach((w, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'winner-item';
+                    const initial = w.userName ? w.userName.charAt(0).toUpperCase() : '?';
+                    div.innerHTML = `
+                        <div class="user-info">
+                            <div class="avatar">${initial}</div>
+                            <span class="name">${w.userName || 'لاعب'}</span>
+                            <span class="food-icon">${w.foodIcon || '🍽️'}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:8px;">
+                            <span class="prize">+${w.prize || 0} 💎</span>
+                            <span class="rank-badge">#${i+1}</span>
+                        </div>
+                    `;
+                    winnersList.appendChild(div);
+                });
+            }
+            winnersModal.classList.add('show');
+            setTimeout(() => { winnersModal.classList.remove('show'); }, 10000);
+        }
+
+        // ===== UPDATE UI =====
+        function updateUI() {
+            balanceTxt.innerText = G.balance;
+            winStatsTxt.innerText = G.todayWins.toLocaleString();
+        }
+
+        // ===== CHIPS =====
+        chipItems.forEach(chip => {
+            chip.addEventListener('click', () => {
+                if (G.isRunning) return;
+                Sound.tick(480, 0.05);
+                chipItems.forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                G.chipValue = parseInt(chip.dataset.val);
+            });
+        });
+
+        // ===== BET =====
+        foodSlots.forEach(slot => {
+            slot.addEventListener('click', () => {
+                if (G.isRunning) return;
+                const idx = parseInt(slot.dataset.index);
+                if (G.balance < G.chipValue) {
+                    Sound.tick(220, 0.2);
+                    return;
+                }
+                Sound.bet();
+                G.balance -= G.chipValue;
+                G.activeBets[idx] = (G.activeBets[idx] || 0) + G.chipValue;
+                updateUI();
+
+                let badge = slot.querySelector('.bet-placed-badge');
+                if (!badge) {
+                    badge = document.createElement('div');
+                    badge.className = 'bet-placed-badge';
+                    slot.appendChild(badge);
+                }
+                badge.innerText = G.activeBets[idx];
+                slot.classList.add('user-selected');
+            });
+        });
+
+        // ===== COUNTDOWN =====
+        let countdownInterval = null;
+
+        function startCountdown() {
+            if (countdownInterval) clearInterval(countdownInterval);
+            G.countdown = 30;
+            countdownTxt.innerText = G.countdown + 's';
+            G.activeBets = {};
+            foodSlots.forEach(s => {
+                s.classList.remove('user-selected', 'lit-up', 'winner-flash');
+                const b = s.querySelector('.bet-placed-badge');
+                if (b) b.remove();
+            });
+
+            countdownInterval = setInterval(() => {
+                G.countdown--;
+                countdownTxt.innerText = G.countdown + 's';
+                if (G.countdown <= 5 && G.countdown > 0) Sound.tick(900, 0.05);
+                if (G.countdown <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownInterval = null;
+                    triggerLightChaser();
+                }
+            }, 1000);
+        }
+
+        // ===== LIGHT CHASER =====
+        function triggerLightChaser() {
+            G.isRunning = true;
+            countdownTxt.innerText = '🎰';
+
+            const winIndex = Math.floor(Math.random() * G.foods.length);
+            let pos = 0,
+                steps = 0;
+            let speed = 55;
+            const minSteps = 36;
+
+            function step() {
+                foodSlots.forEach(s => s.classList.remove('lit-up'));
+                const current = document.querySelector(`[data-index="${pos}"]`);
+                if (current) current.classList.add('lit-up');
+                Sound.tick(560 + (pos * 25), 0.025);
+                steps++;
+
+                if (steps > minSteps && pos === winIndex) {
+                    setTimeout(() => finishRound(winIndex), 500);
+                    return;
+                }
+
+                if (steps > minSteps - 10) speed += 28;
+                if (steps > minSteps + 6) speed += 40;
+
+                pos = (pos + 1) % G.foods.length;
+                setTimeout(step, speed);
+            }
+            step();
+        }
+
+        // ===== FINISH ROUND =====
+        function finishRound(winIdx) {
+            G.isRunning = false;
+            const winner = G.foods[winIdx];
+            const winSlot = document.querySelector(`[data-index="${winIdx}"]`);
+            if (winSlot) winSlot.classList.add('lit-up', 'winner-flash');
+            Sound.win();
+
+            const winners = [];
+
+            if (G.activeBets[winIdx]) {
+                const payout = G.activeBets[winIdx] * winner.mult;
+                G.balance += payout;
+                G.todayWins += payout;
+                updateUI();
+
+                winners.push({
+                    userName: G.userName,
+                    foodIcon: winner.icon,
+                    prize: payout
+                });
+            }
+
+            // إضافة للتاريخ
+            const node = document.createElement('div');
+            node.className = 'history-node';
+            node.innerText = winner.icon;
+            historyStrip.insertBefore(node, historyStrip.firstChild);
+            while (historyStrip.children.length > 8) historyStrip.removeChild(historyStrip.lastChild);
+
+            if (winners.length > 0) {
+                showWinnersModal(winners);
+            } else {
+                winnersList.innerHTML = '<div class="no-winners">😅 لا يوجد فائزون في هذه الجولة</div>';
+                winnersModal.classList.add('show');
+                setTimeout(() => { winnersModal.classList.remove('show'); }, 4000);
+            }
+
+            setTimeout(startCountdown, 3000);
+        }
+
+        // ===== INIT =====
+        updateUI();
+        startCountdown();
+
+        console.log('🎮 اللعبة بدأت - وقت الرهان 30 ثانية');
+        console.log('👤 لاعب:', G.userName);
+    </script>
+</body>
+</html>
